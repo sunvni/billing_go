@@ -67,15 +67,21 @@ build:
 	@$(GO_BUILD) -o $(projectName)
 	@echo build $(projectName) ok
 
-# x32 x64
+# x32 x64 arm64
 $(appArchList):
 # call release_app,386,x32
 # or
 # call release_app,amd64,x64
+# or
+# call release_app,arm64,arm64
 	$(call release_app,$(subst x64,amd64,$(subst x32,386,$@)),$@)
 ifneq ($(upxBin),)
 	@$(upxBin) --best $(releasePath)/$(projectName)
+ifeq ($@,arm64)
+	@echo "Skipping UPX for Windows ARM64 (not yet supported by UPX)"
+else
 	@$(upxBin) --best $(releasePath)/$(projectName).exe
+endif
 endif
 	$(call tar_app,$(projectName)-release-$@)
 
