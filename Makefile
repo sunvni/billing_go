@@ -5,7 +5,7 @@ $(error build $(projectName) is not support on $(hostOsType))
 endif
 export CGO_ENABLED=0
 appVersion ?= 1.3.5
-appArchList := x32 x64
+appArchList := x32 x64 arm64
 appBuildTime ?= $(shell TZ=Asia/Shanghai date "+%F %T GMT%:z")
 appGitCommitHash ?= $(shell git rev-parse HEAD)
 appModuleName := github.com/liuguangw/billing_go/services
@@ -85,4 +85,4 @@ clean:
 	@rm -rf ./$(projectName)*
 	@rm -rf $(releasePath)
 
-.PHONY: build x32 x64 all clean
+.PHONY: build x32 x64 arm64 all clean
