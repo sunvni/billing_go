@@ -55,6 +55,15 @@ define release_app
 	@cp $(EXTRA_FILES) $(releasePath)/
 endef
 
+# release for linux only (e.g., for ARM devices like Orange Pi)
+define release_app_linux
+	@echo build for $(2)
+	@mkdir -p $(releasePath)
+	@echo "build $(projectName) (linux/$(2))"
+	@GOOS=linux GOARCH=$(1) $(GO_BUILD) -o $(releasePath)/$(projectName)
+	@cp $(EXTRA_FILES) $(releasePath)/
+endef
+
 # 打包
 define tar_app
 	@mv $(releasePath) ./$(1)
@@ -68,20 +77,22 @@ build:
 	@echo build $(projectName) ok
 
 # x32 x64 arm64
-$(appArchList):
+x32 x64:
 # call release_app,386,x32
 # or
 # call release_app,amd64,x64
-# or
-# call release_app,arm64,arm64
 	$(call release_app,$(subst x64,amd64,$(subst x32,386,$@)),$@)
 ifneq ($(upxBin),)
 	@$(upxBin) --best $(releasePath)/$(projectName)
-ifeq ($@,arm64)
-	@echo "Skipping UPX for Windows ARM64 (not yet supported by UPX)"
-else
 	@$(upxBin) --best $(releasePath)/$(projectName).exe
 endif
+	$(call tar_app,$(projectName)-release-$@)
+
+# ARM64 target for Linux-only devices (e.g., Orange Pi)
+arm64:
+	$(call release_app_linux,arm64,arm64)
+ifneq ($(upxBin),)
+	@$(upxBin) --best $(releasePath)/$(projectName)
 endif
 	$(call tar_app,$(projectName)-release-$@)
 
