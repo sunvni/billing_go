@@ -5,7 +5,7 @@ $(error build $(projectName) is not support on $(hostOsType))
 endif
 export CGO_ENABLED=0
 appVersion ?= 1.3.5
-appArchList := x32 x64 arm64
+appArchList := x32 x64
 appBuildTime ?= $(shell TZ=Asia/Shanghai date "+%F %T GMT%:z")
 appGitCommitHash ?= $(shell git rev-parse HEAD)
 appModuleName := github.com/liuguangw/billing_go/services
@@ -55,15 +55,6 @@ define release_app
 	@cp $(EXTRA_FILES) $(releasePath)/
 endef
 
-# release for linux only (e.g., for ARM devices like Orange Pi)
-define release_app_linux
-	@echo build for $(2)
-	@mkdir -p $(releasePath)
-	@echo "build $(projectName) (linux/$(2))"
-	@GOOS=linux GOARCH=$(1) $(GO_BUILD) -o $(releasePath)/$(projectName)
-	@cp $(EXTRA_FILES) $(releasePath)/
-endef
-
 # 打包
 define tar_app
 	@mv $(releasePath) ./$(1)
@@ -76,8 +67,8 @@ build:
 	@$(GO_BUILD) -o $(projectName)
 	@echo build $(projectName) ok
 
-# x32 x64 arm64
-x32 x64:
+# x32 x64
+$(appArchList):
 # call release_app,386,x32
 # or
 # call release_app,amd64,x64
@@ -88,18 +79,10 @@ ifneq ($(upxBin),)
 endif
 	$(call tar_app,$(projectName)-release-$@)
 
-# ARM64 target for Linux-only devices (e.g., Orange Pi)
-arm64:
-	$(call release_app_linux,arm64,arm64)
-ifneq ($(upxBin),)
-	@$(upxBin) --best $(releasePath)/$(projectName)
-endif
-	$(call tar_app,$(projectName)-release-$@)
-
 all:$(appArchList)
 
 clean:
 	@rm -rf ./$(projectName)*
 	@rm -rf $(releasePath)
 
-.PHONY: build x32 x64 arm64 all clean
+.PHONY: build x32 x64 all clean
